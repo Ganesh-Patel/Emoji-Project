@@ -1,41 +1,54 @@
 import { emojiList } from './emoji.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const emoji_container = document.getElementById("emoji_container");
-    const search_field = document.getElementById("search_field");
-    const search_btn = document.getElementById("searchBtn");
+const searchEmoji = e => {
+    e.preventDefault();
+    const value = document.getElementById("search_field").value;
+    displaySearchResults(value);
+    return false;
+}
 
-    function displayEmoji(searchedValue = "") {
-        emoji_container.innerHTML = ""; 
+const autoSearch = e => {
+    const value = e.target.value;
+    displaySearchResults(value);
+}
 
-        let filteredEmojis = emojiList.filter(function(emoji) {
-            return emoji.description.includes(searchedValue) || 
-                   emoji.aliases.some(alias => alias.includes(searchedValue));
-        });
+const displaySearchResults = (searchQuery = "") => {
+    const filtered = emojiList.filter(e => {
+        if (e.description.includes(searchQuery)) {
+            return true;
+        }
+        if (e.aliases.some(alias => alias.startsWith(searchQuery))) {
+            return true;
+        }
+        if (e.tags.some(tag => tag.startsWith(searchQuery))) {
+            return true;
+        }
+        return false;
+    });
 
-        filteredEmojis.forEach(function(emoji) {
-            let new_row = document.createElement("tr");
-            let new_emoji = document.createElement("td");
-            let new_aliases = document.createElement("td");
-            let new_description = document.createElement("td");
+    const parent = document.getElementById("emoji_container");
+    parent.innerHTML = "";
+    filtered.forEach(e => {
+        const new_row = document.createElement('tr');
+        const new_emoji = document.createElement('td');
+        const new_aliases = document.createElement('td');
+        const new_desc = document.createElement('td');
 
-            new_emoji.innerText = emoji.emoji;
-            new_aliases.innerText = emoji.aliases.join(", ");
-            new_description.innerText = emoji.description;
+        new_emoji.innerText = e.emoji;
+        new_aliases.innerText = e.aliases.join(", ");
+        new_desc.innerText = e.description;
 
-            new_row.appendChild(new_emoji);
-            new_row.appendChild(new_aliases);
-            new_row.appendChild(new_description);
-            emoji_container.appendChild(new_row);
-        });
-    }
+        new_emoji.classList.add("emoji");
+        new_aliases.classList.add("aliases");
+        new_desc.classList.add("desc");
 
-    function searchData() {
-        let value = search_field.value.trim();
-        displayEmoji(value);
-    }
+        new_row.appendChild(new_emoji);
+        new_row.appendChild(new_aliases);
+        new_row.appendChild(new_desc);
+        parent.appendChild(new_row);
+    });
+}
 
-    displayEmoji(); 
-    search_btn.addEventListener('click', searchData);
-    // search_field.addEventListener('', searchData); // Optional: Enable real-time search
-});
+document.getElementById("searchBtn").addEventListener('submit', searchEmoji);
+document.getElementById("search_field").addEventListener("keyup", autoSearch);
+window.onload = () => displaySearchResults();
